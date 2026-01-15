@@ -3,23 +3,34 @@ import * as SQLite from "expo-sqlite";
 export const db = SQLite.openDatabaseSync("pos.db");
 
 export function initDb() {
-  db.execSync(`
-    PRAGMA journal_mode = WAL;
+// clientes 
+db.execSync(`
+  PRAGMA journal_mode = WAL;
 
-    CREATE TABLE IF NOT EXISTS clientes (
-      id TEXT PRIMARY KEY NOT NULL,
-      nombre TEXT NOT NULL,
-      cuit TEXT,
-      telefono TEXT,
-      email TEXT,
-      direccion TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
+  CREATE TABLE IF NOT EXISTS clientes (
+    id TEXT PRIMARY KEY NOT NULL,
+    cuit TEXT NOT NULL DEFAULT '',
+    razonSocial TEXT NOT NULL DEFAULT '',
+    condicionIVAId INTEGER NOT NULL DEFAULT 5,
 
-    CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(nombre);
-  `);
+    telefono TEXT,
+    email TEXT,
+    direccion TEXT,
 
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_clientes_razon ON clientes(razonSocial);
+
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_clientes_cuit
+  ON clientes(cuit)
+  WHERE cuit <> '';
+`);
+
+
+
+// articulos
   db.execSync(`
   CREATE TABLE IF NOT EXISTS articulos (
     id TEXT PRIMARY KEY NOT NULL,
@@ -37,6 +48,7 @@ export function initDb() {
   CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo);
 `);
 
+// settings Emisor
 db.execSync(`
   CREATE TABLE IF NOT EXISTS settings_emisor (
     id INTEGER PRIMARY KEY NOT NULL DEFAULT 1,

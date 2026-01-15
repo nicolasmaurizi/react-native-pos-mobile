@@ -1,7 +1,10 @@
+export type CondicionIVAId = 1 | 4 | 5 | 6;
+
 export type Cliente = {
   id: string;
-  nombre: string;
-  cuit?: string;
+  cuit: string;                 
+  razonSocial: string;          
+  condicionIVAId: CondicionIVAId;
   telefono?: string;
   email?: string;
   direccion?: string;

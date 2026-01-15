@@ -80,7 +80,7 @@ export default function ClientesScreen() {
               <Card style={{ marginBottom: theme.space(1.5) }}>
                 <View style={styles.row}>
                   <View style={{ flex: 1, paddingRight: theme.space(1) }}>
-                    <Text style={styles.name}>{item.nombre}</Text>
+                    <Text style={styles.name}>{item.razonSocial}</Text>
                     {!!item.cuit && <Text style={styles.meta}>CUIT: {item.cuit}</Text>}
                     {!!item.telefono && <Text style={styles.meta}>Tel: {item.telefono}</Text>}
                   </View>
