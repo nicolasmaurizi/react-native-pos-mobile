@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { Plus, Search, Trash2, Pencil } from "lucide-react-native";
 import { theme } from "../ui/theme";
 import Card from "../ui/Card";
@@ -40,6 +40,28 @@ export default function ClientesScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
+  function confirmDeleteCliente(cliente: { id: string; razonSocial: string; cuit?: string }) {
+    const subtitle = cliente.cuit
+      ? `${cliente.razonSocial}\nCUIT: ${cliente.cuit}`
+      : cliente.razonSocial;
+
+    Alert.alert(
+      "Eliminar cliente",
+      `¿Seguro que querés eliminar este cliente?\n\n${subtitle}`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            deleteCliente(cliente.id);
+            refresh(); // ✅ refresca lista visible
+          },
+        },
+      ]
+    );
+  }
+
   const empty = useMemo(() => rows.length === 0, [rows.length]);
 
   return (
@@ -55,7 +77,7 @@ export default function ClientesScreen() {
           <View style={{ flex: 1 }}>
             <Input
               label={undefined}
-              placeholder="Buscar por nombre o CUIT…"
+              placeholder="Buscar por razón social o CUIT…"
               value={search}
               onChangeText={setSearch}
             />
@@ -96,10 +118,7 @@ export default function ClientesScreen() {
                   </Pressable>
 
                   <Pressable
-                    onPress={() => {
-                      deleteCliente(item.id);
-                      refresh();
-                    }}
+                    onPress={() => confirmDeleteCliente(item)}
                     style={[styles.iconBtn, { borderColor: "#F3D0D0" }]}
                   >
                     <Trash2 size={18} color={theme.colors.danger} />
@@ -111,7 +130,6 @@ export default function ClientesScreen() {
         )}
       </View>
 
-      {/* FAB */}
       <Pressable
         onPress={() => {
           setEditing(null);
@@ -132,9 +150,19 @@ export default function ClientesScreen() {
             ? { ...editing, ...draft, updatedAt: now }
             : { id: uuid(), ...draft, createdAt: now, updatedAt: now };
 
-          upsertCliente(entity);
-          setModalOpen(false);
-          refresh();
+          try {
+            upsertCliente(entity);
+            setModalOpen(false);
+            refresh();
+          } catch (e: any) {
+            // Unique CUIT
+            const msg = String(e?.message ?? e);
+            if (msg.toLowerCase().includes("ux_clientes_cuit")) {
+              Alert.alert("CUIT duplicado", "Ya existe un cliente con ese CUIT.");
+              return;
+            }
+            Alert.alert("Error", msg);
+          }
         }}
       />
     </View>
@@ -191,6 +219,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 4, // Android shadow
+    elevation: 4,
   },
 });

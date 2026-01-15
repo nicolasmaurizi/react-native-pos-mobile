@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { X } from "lucide-react-native";
 import { theme } from "../../ui/theme";
@@ -69,6 +69,27 @@ export default function ClienteModal({
 		setEmail(initial?.email ?? "");
 		setDireccion(initial?.direccion ?? "");
 	};
+
+	useEffect(() => {
+  if (!visible) {
+    setSubmitted(false);
+    setTouchedRazon(false);
+    // si también tenés touchedCuit, etc:
+    // setTouchedCuit(false);
+    return;
+  }
+
+  // al abrir, reseteo flags y cargo valores iniciales
+  setSubmitted(false);
+  setTouchedRazon(false);
+
+  setCuit(initial?.cuit ?? "");
+  setRazonSocial(initial?.razonSocial ?? "");
+  setCondicionIVAId((initial?.condicionIVAId ?? 5) as CondicionIVAId);
+  setTelefono(initial?.telefono ?? "");
+  setEmail(initial?.email ?? "");
+  setDireccion(initial?.direccion ?? "");
+}, [visible, initial]);
 
 	return (
 		<Modal
