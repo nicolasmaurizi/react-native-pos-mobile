@@ -3,8 +3,8 @@ import * as SQLite from "expo-sqlite";
 export const db = SQLite.openDatabaseSync("pos.db");
 
 export function initDb() {
-// clientes 
-db.execSync(`
+	// clientes
+	db.execSync(`
   PRAGMA journal_mode = WAL;
 
   CREATE TABLE IF NOT EXISTS clientes (
@@ -28,28 +28,27 @@ db.execSync(`
   WHERE cuit <> '';
 `);
 
+	// articulos
+db.execSync(`
+  PRAGMA journal_mode = WAL;
 
-
-// articulos
-  db.execSync(`
   CREATE TABLE IF NOT EXISTS articulos (
     id TEXT PRIMARY KEY NOT NULL,
-    codigo TEXT,
-    nombre TEXT NOT NULL,
-    precio REAL NOT NULL,
-    stock REAL,
-    unidad TEXT,
+    codigo TEXT NOT NULL DEFAULT '',
+    descripcion TEXT NOT NULL DEFAULT '',
+    precio REAL NOT NULL DEFAULT 0,
+    iva REAL NOT NULL DEFAULT 21,
     activo INTEGER NOT NULL DEFAULT 1,
-    createdAt TEXT NOT NULL,
-    updatedAt TEXT NOT NULL
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
-  CREATE INDEX IF NOT EXISTS idx_articulos_nombre ON articulos(nombre);
-  CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo);
+  CREATE INDEX IF NOT EXISTS idx_articulos_desc ON articulos(descripcion);
 `);
 
-// settings Emisor
-db.execSync(`
+
+	// settings Emisor
+	db.execSync(`
   CREATE TABLE IF NOT EXISTS settings_emisor (
     id INTEGER PRIMARY KEY NOT NULL DEFAULT 1,
     cuit TEXT,
@@ -65,6 +64,4 @@ db.execSync(`
 
   INSERT OR IGNORE INTO settings_emisor (id) VALUES (1);
 `);
-
-
 }
