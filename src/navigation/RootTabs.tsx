@@ -66,7 +66,7 @@ export default function RootTabs() {
     >
       <Tab.Screen name="clientes" component={ClientesScreen} options={{ title: "Clientes" }} />
       <Tab.Screen name="articulos" component={ArticulosScreen} options={{ title: "Artículos" }} />
-      <Tab.Screen name="pedidos" component={PedidosScreen} options={{ title: "Pedidos" }} />
+      <Tab.Screen name="pedidos" component={PedidosScreen} options={{ title: "Facturación" }} />
       <Tab.Screen name="ajustes" component={AjustesScreen} options={{ title: "Ajustes" }} />
     </Tab.Navigator>
   );

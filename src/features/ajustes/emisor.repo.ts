@@ -32,7 +32,7 @@ export function getEmisor(): EmisorSettings {
   return {
     cuit: row.cuit ?? "",
     razonSocial: row.razonSocial ?? "",
-    condicionIVAId: row.condicionIVA ?? "Monotributista",
+    condicionIVAId: (row.condicionIVA ?? 6) as CondicionIVAId,
     domicilioComercial: row.domicilioComercial ?? "",
     puntoDeVenta: row.puntoDeVenta ?? "",
     nombreFantasia: row.nombreFantasia ?? "",
