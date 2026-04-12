@@ -25,6 +25,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import { useRef } from "react";
 
+import type { FacturaPayload, FacturaResponseOk } from "../features/facturacion/types";
+import { postFactura } from "../features/facturacion/facturacion.api";
+
 type BuildFacturaHtmlParams = {
 	emisor: Emisor;
 	cliente: Cliente;
@@ -172,10 +175,6 @@ function safeNum(n: unknown, fallback = 0) {
 	return typeof n === "number" && Number.isFinite(n) ? n : fallback;
 }
 
-async function postFactura(_payload: any): Promise<any> {
-	// TODO: fetch(...)
-	return { ok: true, datosQR: "EJEMPLO-QR", numero: "0001-00000001" };
-}
 
 function buildQrStringFromResponse(resp: any) {
 	// TODO: usar resp.datosQR real
@@ -386,37 +385,47 @@ function getQrBase64(): Promise<string> {
 		setItems((prev) => prev.filter((x) => x.id !== lineId));
 	}
 
-	async function facturar() {
-		if (!canFacturar) return;
+async function facturar() {
+  if (!canFacturar || !emisor || !clienteSelected) return;
 
-		const payload = {
-			emisor,
-			cliente: clienteSelected,
-			items: items.map((it) => ({
-				articuloId: it.articuloId,
-				codigo: it.codigo,
-				descripcion: it.descripcion,
-				cantidad: it.cantidad,
-				precio: it.precio,
-				iva: it.iva,
-				subtotal: lineSubtotal(it),
-			})),
-			totales: { cantidad, total },
-			createdAt: new Date().toISOString(),
-		};
+  const payload: FacturaPayload = {
+    emisor: {
+      cuit: String(emisor.cuit ?? ""),
+      razonSocial: String(emisor.razonSocial ?? ""),
+      puntoDeVenta: String(emisor.puntoDeVenta ?? ""),
+      idFEAPI: emisor.idFEAPI ?? null,
+      domicilioComercial: emisor.domicilioComercial ?? null,
+    },
+    cliente: {
+      id: clienteSelected.id,
+      razonSocial: clienteSelected.razonSocial,
+      cuit: clienteSelected.cuit ?? "",
+      condicionIVAId: clienteSelected.condicionIVAId,
+      direccion: clienteSelected.direccion,
+    },
+    items: items.map((it) => ({
+      articuloId: it.articuloId,
+      codigo: it.codigo,
+      descripcion: it.descripcion,
+      cantidad: it.cantidad,
+      precio: it.precio,
+      iva: it.iva as any,
+      subtotal: lineSubtotal(it),
+    })),
+    totales: { cantidad, total },
+    createdAt: new Date().toISOString(),
+  };
 
-		try {
-			const resp = await postFactura(payload);
-			setFactResp(resp);
+  const resp = await postFactura(payload);
 
-			//const qr = buildQrStringFromResponse(resp);
-			//setQrValue(qr);
+  if (!resp.ok) {
+    Alert.alert("Error", resp.message ?? "No se pudo facturar.");
+    return;
+  }
 
-			Alert.alert("OK", "Factura generada correctamente.");
-		} catch (e: any) {
-			Alert.alert("Error", e?.message ?? "No se pudo facturar.");
-		}
-	}
+  setFactResp(resp); // ✅ guardo respuesta OK para luego armar PDF/QR
+  Alert.alert("OK", `Factura generada: ${resp.numero}`);
+}
 
 async function generarPdfYCompartir() {
   if (!factResp || !emisor || !clienteSelected || items.length === 0) return;
